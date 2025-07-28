@@ -1,0 +1,5 @@
+{
+  "name": "Configurable Auth Module Demo",
+  "description": "A dynamic and visually appealing demonstration of a portable and re-usable login module, showcasing various authentication methods and real-time configuration options as outlined in the project's business requirements document.",
+  "requestFramePermissions": []
+}

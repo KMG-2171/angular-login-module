@@ -1,5 +1,9 @@
-
 export interface LoginConfig {
+  ui: {
+    brandLogoUrl: string;
+    theme: 'light' | 'dark';
+    language: 'en' | 'hi';
+  };
   providers: {
     emailPassword: boolean;
     social: {
@@ -13,19 +17,38 @@ export interface LoginConfig {
       magicLink: boolean;
       authenticator: boolean;
     };
-    biometrics: boolean;
     sso: {
       okta: boolean;
       azureAd: boolean;
     };
+    biometrics: boolean;
   };
   features: {
     rememberMe: boolean;
     forgotPassword: boolean;
   };
-  ui: {
-    theme: 'light' | 'dark';
-    language: 'en' | 'hi';
-    brandLogoUrl: string;
-  };
+}
+
+// --- API Service Types ---
+
+export interface AuthResponse {
+  token: string;
+  user: UserProfile;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  name?: string;
+}
+
+export interface LoginPayload {
+  email: string;
+  password?: string; // Password might be optional for some flows
+}
+
+export interface ExternalLoginUrlResponse {
+  data:string
+  success: boolean;
+  message: string;
 }

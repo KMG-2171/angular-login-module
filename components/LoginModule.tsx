@@ -1,20 +1,16 @@
 
 import React, { useState } from 'react';
-import type { LoginConfig } from '../types';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from './ui/Icon';
 import * as auth from '../services/auth';
+import { useConfig } from '../contexts/ConfigContext'
 
-interface LoginModuleProps {
-  config: LoginConfig;
-  t: Record<string, string>;
-}
-
-const SocialButton: React.FC<{ provider: string, t: Record<string, string>, onClick: (provider: string) => void }> = ({ provider, t, onClick }) => (
+const SocialButton: React.FC<{ provider: string, label: string, onClick: (provider: string) => void }> = ({ provider, label, onClick }) => (
   <button
     type="button"
     onClick={() => onClick(provider)}
     className="flex-1 flex items-center justify-center p-3 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-    aria-label={`${t.loginWith} ${provider}`}
+    aria-label={label}
   >
     <Icon name={provider.toLowerCase()} className="h-6 w-6" />
   </button>
@@ -49,20 +45,29 @@ const SSOButton: React.FC<{ provider: 'okta' | 'azureAd', t: Record<string, stri
 };
 
 
-const LoginModule: React.FC<LoginModuleProps> = ({ config, t }) => {
-  const { providers, features, ui } = config;
+const LoginModule: React.FC = () => {
+  const { config, t } = useConfig();
+  const { providers, features, ui } = config;  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null); // Clear previous errors on a new attempt
     try {
       const response = await auth.login({ email, password });
-      console.log('Login successful', response.data);
-      alert('Login successful!');
-    } catch (error) {
-      console.error('Login failed', error);
-      alert('Login failed!');
+      const token = response.data.token;
+      if (token) {
+        localStorage.setItem('authToken', token);
+        navigate('/dashboard');
+      } else {
+        setError('Authentication failed. Please try again.');
+      }
+    } catch (err) {
+      console.error('Login failed', err);
+      setError('Invalid email or password. Please try again.');
     }
   };
 
@@ -70,7 +75,7 @@ const LoginModule: React.FC<LoginModuleProps> = ({ config, t }) => {
     try {
       const response = await auth.getExternalLoginUrl(provider.toLowerCase());
       console.log('Social login URL', response);
-      window.location.href = response.data.url;
+      window.location.href = response.data.data.toString(); // Redirect to the social login URL
     } catch (error) {
       console.error('Social login failed', error);
       alert('Social login failed!');
@@ -121,6 +126,11 @@ const LoginModule: React.FC<LoginModuleProps> = ({ config, t }) => {
                   {features.forgotPassword && <a href="#" className="font-medium text-brand-primary hover:text-brand-primary/80">{t.forgotPassword}</a>}
                 </div>
               )}
+              
+              {error && (
+                <p className="text-sm text-center text-red-600 dark:text-red-400">{error}</p>
+              )}
+
               <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-primary hover:bg-brand-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary">{t.loginButton}</button>
             </div>
           )}
@@ -141,11 +151,11 @@ const LoginModule: React.FC<LoginModuleProps> = ({ config, t }) => {
           <div className="space-y-4">
             {anySocial && (
                 <div className="flex gap-3">
-                    {providers.social.google && <SocialButton provider="Google" t={t} onClick={handleSocialLogin} />}
-                    {providers.social.facebook && <SocialButton provider="Facebook" t={t} onClick={handleSocialLogin} />}
-                    {providers.social.twitter && <SocialButton provider="Twitter" t={t} onClick={handleSocialLogin} />}
-                    {providers.social.microsoft && <SocialButton provider="Microsoft" t={t} onClick={handleSocialLogin} />}
-                    {providers.social.github && <SocialButton provider="Github" t={t} onClick={handleSocialLogin} />}
+                    {providers.social.google && <SocialButton provider="Google" label={`${t.loginWith} Google`} onClick={handleSocialLogin} />}
+                    {providers.social.facebook && <SocialButton provider="Facebook" label={`${t.loginWith} Facebook`} onClick={handleSocialLogin} />}
+                    {providers.social.twitter && <SocialButton provider="Twitter" label={`${t.loginWith} Twitter`} onClick={handleSocialLogin} />}
+                    {providers.social.microsoft && <SocialButton provider="Microsoft" label={`${t.loginWith} Microsoft`} onClick={handleSocialLogin} />}
+                    {providers.social.github && <SocialButton provider="Github" label={`${t.loginWith} Github`} onClick={handleSocialLogin} />}
                 </div>
             )}
             

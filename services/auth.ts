@@ -1,12 +1,15 @@
 import axios from 'axios';
+import { AuthResponse, ExternalLoginUrlResponse, LoginPayload, UserProfile } from '../types';
 
 const api = axios.create({
-  baseURL: 'http://10.130.205.130:7174/api/Auth',
+  baseURL: 'http://localhost:7174/api/Auth',
 });
 
-export const register = (data: any) => api.post('/register', data);
-export const login = (data: any) => api.post('/login', data);
-export const getExternalLoginUrl = (provider: string) => api.get(`/external-login-url?provider=${provider}`);
-export const externalLoginCallback = (params: any) => api.get('/external-login-callback', { params });
-export const validateExternalToken = (data: any) => api.post('/validate-external-token', data);
-export const getProfile = () => api.get('/profile');
+// We can now expect a strongly-typed response from our API calls.
+export const register = (data: LoginPayload) => api.post<AuthResponse>('/register', data);
+
+export const login = (data: LoginPayload) => api.post<AuthResponse>('/login', data);
+
+export const getExternalLoginUrl = (provider: string) => api.get<ExternalLoginUrlResponse>(`/external-login-url?providerName=${provider}`);
+
+export const getProfile = () => api.get<UserProfile>('/profile');

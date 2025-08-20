@@ -1,11 +1,23 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
+import NavBar from './NavBar';
 
 const ProtectedRoute: React.FC = () => {
   const token = localStorage.getItem('authToken');
 
-  // If a token exists, render the nested route (e.g., Dashboard). Otherwise, redirect to login.
-  return token ? <Outlet /> : <Navigate to="/" replace />;
+  if (!token) {
+    return <Navigate to="/" replace />;
+  }
+
+  return (
+    <>
+      <NavBar />
+      {/* Add top padding to avoid content being hidden behind the fixed navbar */}
+      <div className="w-full pt-20">
+        <Outlet />
+      </div>
+    </>
+  );
 };
 
 export default ProtectedRoute;

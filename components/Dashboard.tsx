@@ -1,11 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../contexts/UserContext';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { setUser } = useUser();
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
+    setUser(null);
     navigate('/');
   };
 

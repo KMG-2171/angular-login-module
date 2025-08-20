@@ -2,7 +2,7 @@ import axios from 'axios';
 import { AuthResponse, ExternalLoginUrlResponse, LoginPayload, UserProfile } from '../types';
 
 const api = axios.create({
-  baseURL: 'http://localhost:7174/api/Auth',
+  baseURL: 'https://localhost:44351/api/Auth',
 });
 
 // We can now expect a strongly-typed response from our API calls.

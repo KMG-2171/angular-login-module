@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Icon } from './ui/Icon';
 import * as auth from '../services/auth';
 import { useConfig } from '../contexts/ConfigContext'
+import { useUser } from '../contexts/UserContext'
 
 const SocialButton: React.FC<{ provider: string, label: string, onClick: (provider: string) => void }> = ({ provider, label, onClick }) => (
   <button
@@ -27,7 +28,7 @@ const ActionButton: React.FC<{ icon: string; text: string; onClick?: () => void 
   </button>
 );
 
-const SSOButton: React.FC<{ provider: 'okta' | 'azureAd', t: Record<string, string> }> = ({ provider, t }) => {
+const SSOButton: React.FC<{ provider: 'okta' | 'azureAd', t: Record<string, string>, onClick: (provider: string) => void }> = ({ provider, t, onClick }) => {
     const brandColors = {
         okta: 'border-okta-blue text-okta-blue hover:bg-okta-blue/10',
         azureAd: 'border-azure-blue text-azure-blue hover:bg-azure-blue/10',
@@ -35,7 +36,7 @@ const SSOButton: React.FC<{ provider: 'okta' | 'azureAd', t: Record<string, stri
     return (
         <button
             type="button"
-            onClick={() => alert(`Signing in with ${provider}...`)}
+            onClick={() => onClick(provider)}
             className={`w-full flex items-center justify-center p-3 text-sm font-semibold border rounded-md transition-colors duration-200 ${brandColors[provider]}`}
         >
             <Icon name={provider} className="h-5 w-5 mr-3" />
@@ -47,6 +48,7 @@ const SSOButton: React.FC<{ provider: 'okta' | 'azureAd', t: Record<string, stri
 
 const LoginModule: React.FC = () => {
   const { config, t } = useConfig();
+  const { setUser } = useUser();
   const { providers, features, ui } = config;  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -58,9 +60,16 @@ const LoginModule: React.FC = () => {
     setError(null); // Clear previous errors on a new attempt
     try {
       const response = await auth.login({ email, password });
-      const token = response.data.token;
+      const { token, user } = response.data;
       if (token) {
         localStorage.setItem('authToken', token);
+        if (user) {
+          // Fallback avatar if none provided
+          if (!user.avatarUrl) {
+            user.avatarUrl = `https://i.pravatar.cc/100?u=${user.id}`;
+          }
+          setUser(user);
+        }
         navigate('/dashboard');
       } else {
         setError('Authentication failed. Please try again.');
@@ -183,8 +192,8 @@ const LoginModule: React.FC = () => {
                         </div>
                     )}
                     <div className="space-y-3">
-                        {providers.sso.okta && <SSOButton provider="okta" t={t} />}
-                        {providers.sso.azureAd && <SSOButton provider="azureAd" t={t} />}
+                        {providers.sso.okta && <SSOButton provider="okta" t={t} onClick={handleSocialLogin} />}
+                        {providers.sso.azureAd && <SSOButton provider="azureAd" t={t} onClick={handleSocialLogin} />}
                     </div>
                 </>
             )}
